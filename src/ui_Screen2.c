@@ -14,6 +14,7 @@ void ui_Screen2_screen_init(void)
     lv_obj_set_width(ui_ArcPUMP, 210);
     lv_obj_set_height(ui_ArcPUMP, 210);
     lv_obj_set_align(ui_ArcPUMP, LV_ALIGN_CENTER);
+    lv_arc_set_range(ui_ArcPUMP, 0, 255);
     lv_arc_set_value(ui_ArcPUMP, 50);
 
 

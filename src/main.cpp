@@ -4,6 +4,9 @@
 #include <TFT_eSPI.h>
 #include <ui.h>
 #include <CST816S.h>
+#include <QuickPID.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 /*Don't forget to set Sketchbook location in File/Preferences to the path of your UI project (the parent foder of this INO file)*/
 
@@ -17,6 +20,19 @@ static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14);
 
+#define PUMP_PIN 32
+#define TEMP_PIN 26
+#define RELAY_PIN 33
+
+OneWire oneWire(TEMP_PIN);
+DallasTemperature temp(&oneWire);
+
+TaskHandle_t TaskTempCheck_t;
+SemaphoreHandle_t gui_mutex;
+
+float floor_temp = 30;
+
+
 #if LV_USE_LOG != 0
 /* Serial debugging */
 void my_print(const char * buf)
@@ -25,6 +41,63 @@ void my_print(const char * buf)
     Serial.flush();
 }
 #endif
+
+void initPwmSetup() {
+    ledcSetup(0,2500,8);
+    pinMode(RELAY_PIN, OUTPUT);
+    digitalWrite(RELAY_PIN, LOW);
+}
+
+void taskTempCheck (void *pvParameters) {
+    float tempVal;
+    char tempStr[10];
+    while(1){
+        temp.requestTemperatures();
+        tempVal = temp.getTempCByIndex(0);
+        floor_temp = tempVal;
+        if (floor_temp >= 32){
+            digitalWrite(RELAY_PIN, LOW);
+        }
+        else if (floor_temp < 30){
+            digitalWrite(RELAY_PIN, HIGH);
+        }
+        dtostrf(tempVal,7,2,tempStr);
+        xSemaphoreTake(gui_mutex, portMAX_DELAY);
+        lv_label_set_text(ui_labelActTemp,tempStr);
+        xSemaphoreGive(gui_mutex);
+        vTaskDelay(300/ portTICK_PERIOD_MS);
+    }
+}
+
+static void event_pump_freq_change (lv_event_t * e) {
+  char val[10];
+  lv_dropdown_get_selected_str(ui_dropdownPwmFreq, val, sizeof(val));
+  ledcChangeFrequency(0, atoi(val),8);
+  Serial.printf("PUMP FREQ = ", val);
+}
+
+static void event_pump_power_change (lv_event_t * e) {
+  int val = lv_arc_get_value(ui_ArcPUMP);
+  ledcWrite(0, val);
+  Serial.printf("PUMP POWER = ", val);
+}
+
+static void event_pump_onoff (lv_event_t * e) {
+  if (lv_obj_has_state(ui_switchOnOffPump, LV_STATE_CHECKED)) {
+    ledcAttachPin(PUMP_PIN, 0);
+    ledcWrite(0, lv_arc_get_value(ui_ArcPUMP));
+  }
+  else {
+    ledcWrite(0,0);
+    ledcDetachPin(PUMP_PIN);
+  }
+}
+
+void initEventSetup () {
+  lv_obj_add_event_cb(ui_dropdownPwmFreq, event_pump_freq_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_ArcPUMP, event_pump_power_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_switchOnOffPump, event_pump_onoff, LV_EVENT_VALUE_CHANGED, NULL);
+}
 
 /* Display flushing */
 void my_disp_flush (lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap)
@@ -83,6 +156,8 @@ static uint32_t my_tick_get_cb (void) { return millis(); }
 void setup ()
 {
     Serial.begin( 115200 ); /* prepare for possible serial debug */
+    gui_mutex = xSemaphoreCreateMutex();
+    temp.begin();
 
     String LVGL_Arduino = "Hello Arduino! ";
     LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
@@ -114,12 +189,17 @@ void setup ()
     lv_tick_set_cb( my_tick_get_cb );
 
     ui_init();
+    initPwmSetup();
+    initEventSetup();
+    xTaskCreatePinnedToCore(taskTempCheck, "TempTask", 4096, NULL, 1, &TaskTempCheck_t, 0);
 
     Serial.println( "Setup done" );
 }
 
 void loop ()
 {
+    xSemaphoreTake(gui_mutex,portMAX_DELAY);
     lv_timer_handler(); /* let the GUI do its work */
-    delay(5);
+    xSemaphoreGive(gui_mutex);
+    vTaskDelay(5 /portTICK_PERIOD_MS);
 }
