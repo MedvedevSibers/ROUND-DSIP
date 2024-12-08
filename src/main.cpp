@@ -20,8 +20,8 @@ static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14);
 
-#define PUMP_PIN 32
-#define TEMP_PIN 26
+#define PUMP_PIN 26  //bylo 32
+#define TEMP_PIN 32  //bylo 26
 #define RELAY_PIN 33
 
 OneWire oneWire(TEMP_PIN);
@@ -56,10 +56,10 @@ void taskTempCheck (void *pvParameters) {
         tempVal = temp.getTempCByIndex(0);
         floor_temp = tempVal;
         if (floor_temp >= 32){
-            digitalWrite(RELAY_PIN, LOW);
+            digitalWrite(RELAY_PIN, HIGH);
         }
         else if (floor_temp < 30){
-            digitalWrite(RELAY_PIN, HIGH);
+            digitalWrite(RELAY_PIN, LOW);
         }
         dtostrf(tempVal,7,2,tempStr);
         xSemaphoreTake(gui_mutex, portMAX_DELAY);
