@@ -14,7 +14,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_arcTempSettings, 200);
     lv_obj_set_height(ui_arcTempSettings, 200);
     lv_obj_set_align(ui_arcTempSettings, LV_ALIGN_CENTER);
-    lv_arc_set_range(ui_arcTempSettings, 5, 80);
+    lv_arc_set_range(ui_arcTempSettings, 20, 50);
     lv_arc_set_value(ui_arcTempSettings, 25);
     lv_arc_set_bg_angles(ui_arcTempSettings, 180, 0);
     lv_obj_set_style_arc_rounded(ui_arcTempSettings, false, LV_PART_MAIN | LV_STATE_DEFAULT);

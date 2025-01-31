@@ -1,5 +1,3 @@
-//Arduino-TFT_eSPI board-template main routine. There's a TFT_eSPI create+flush driver already in LVGL-9.1 but we create our own here for more control (like e.g. 16-bit color swap).
-
 #include <lvgl.h>
 #include <TFT_eSPI.h>
 #include <ui.h>
@@ -7,10 +5,11 @@
 #include <QuickPID.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Preferences.h>
 
-/*Don't forget to set Sketchbook location in File/Preferences to the path of your UI project (the parent foder of this INO file)*/
+#define RW_MODE false  //Варианты работы с памятью
+#define RO_MODE true
 
-/*Change to your screen resolution*/
 static const uint16_t screenWidth  = 240;
 static const uint16_t screenHeight = 240;
 
@@ -18,19 +17,23 @@ enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / 10 };
 static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
-CST816S mytouch(22,21,27,14);
+CST816S mytouch(22,21,27,14); // пины для работы с тачскрином
 
-#define PUMP_PIN 26  //bylo 32
-#define TEMP_PIN 32  //bylo 26
-#define RELAY_PIN 33
+#define PUMP_PIN 26
+#define TEMP_PIN 32
+#define RELAY_PIN 13 // WAS 33
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp(&oneWire);
 
+Preferences nvs;
+
 TaskHandle_t TaskTempCheck_t;
 SemaphoreHandle_t gui_mutex;
 
-float floor_temp = 30;
+float floor_temp = 32; // текущая температура
+int floor_setpoint; // установленная температура пола
+float saved_temp; // переменная для загрузки-выгрузки сохраненной температуры
 
 
 #if LV_USE_LOG != 0
@@ -42,10 +45,31 @@ void my_print(const char * buf)
 }
 #endif
 
+static uint32_t my_tick_get_cb (void) { return millis(); }
+
 void initPwmSetup() {
     ledcSetup(0,2500,8);
     pinMode(RELAY_PIN, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
+}
+
+void uiSetValues () {
+
+}
+
+void initNvs() {
+  nvs.begin("stored_values", RW_MODE);
+  bool tpInit = nvs.isKey("nvsInit");
+  if (tpInit == false) {
+    nvs.end();
+    nvs.begin("stored_values", RW_MODE);
+    nvs.putInt("saved_temp", 30);
+    nvs.putBool("nvsInit", true);
+    nvs.end();
+    nvs.begin("stored_values", RO_MODE);
+  }
+  floor_setpoint = nvs.getInt("saved_temp");
+  nvs.end();
 }
 
 void taskTempCheck (void *pvParameters) {
@@ -55,11 +79,15 @@ void taskTempCheck (void *pvParameters) {
         temp.requestTemperatures();
         tempVal = temp.getTempCByIndex(0);
         floor_temp = tempVal;
-        if (floor_temp >= 32){
+        if (floor_temp >= floor_setpoint + 1){
             digitalWrite(RELAY_PIN, HIGH);
+            Serial.print("OFF");
+            Serial.print(digitalRead(RELAY_PIN));
         }
-        else if (floor_temp < 30){
+        else if (floor_temp < floor_setpoint){
             digitalWrite(RELAY_PIN, LOW);
+            Serial.print("ON");
+            Serial.print(digitalRead(RELAY_PIN));
         }
         dtostrf(tempVal,7,2,tempStr);
         xSemaphoreTake(gui_mutex, portMAX_DELAY);
@@ -67,6 +95,14 @@ void taskTempCheck (void *pvParameters) {
         xSemaphoreGive(gui_mutex);
         vTaskDelay(300/ portTICK_PERIOD_MS);
     }
+}
+
+static void event_arc_temp_change (lv_event_t * e) {
+  int val = lv_arc_get_value(ui_arcTempSettings);
+  floor_setpoint = val;
+  nvs.begin("stored_values", RW_MODE);
+  nvs.putInt("saved_temp", floor_setpoint);
+  nvs.end();
 }
 
 static void event_pump_freq_change (lv_event_t * e) {
@@ -97,6 +133,7 @@ void initEventSetup () {
   lv_obj_add_event_cb(ui_dropdownPwmFreq, event_pump_freq_change, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_add_event_cb(ui_ArcPUMP, event_pump_power_change, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_add_event_cb(ui_switchOnOffPump, event_pump_onoff, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_arcTempSettings, event_arc_temp_change, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
 /* Display flushing */
@@ -133,38 +170,14 @@ void my_touchpad_read (lv_indev_t * indev_driver, lv_indev_data_t * data)
 
   data->point.x = touchX;
   data->point.y = touchY;
-
-//I added these conditions just to keep my serial monitor from going crazy
-  if (touchX != 0) {
-    Serial.print("Data x ");
-    Serial.println(touchX);
-    Serial.print(mytouch.data.version);
-  }
-
-  if (touchY != 0) {
-    Serial.print("Data y ");
-    Serial.println(touchY);
-    Serial.print(mytouch.gesture());
-  }
 }
-/*Set tick routine needed for LVGL internal timings*/
-static uint32_t my_tick_get_cb (void) { return millis(); }
-
-
-
 
 void setup ()
 {
     Serial.begin( 115200 ); /* prepare for possible serial debug */
     gui_mutex = xSemaphoreCreateMutex();
+    initNvs();
     temp.begin();
-
-    String LVGL_Arduino = "Hello Arduino! ";
-    LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
-
-    Serial.println( LVGL_Arduino );
-    Serial.println( "I am LVGL_Arduino" );
-
     lv_init();
 
 #if LV_USE_LOG != 0
