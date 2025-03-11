@@ -6,6 +6,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Preferences.h>
+#include "wireless_control.cpp"
 
 #define RW_MODE false  //Варианты работы с памятью
 #define RO_MODE true
@@ -16,12 +17,14 @@ static const uint16_t screenHeight = 240;
 enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / 10 };
 static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 
+AsyncWiFiManager wifiManager;
+
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14); // пины для работы с тачскрином
 
-#define PUMP_PIN 26
+#define PUMP_PIN 17
 #define TEMP_PIN 32
-#define RELAY_PIN 13 // WAS 33
+#define RELAY_PIN 33 // WAS 33
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp(&oneWire);
@@ -176,6 +179,8 @@ void setup ()
 {
     Serial.begin( 115200 ); /* prepare for possible serial debug */
     gui_mutex = xSemaphoreCreateMutex();
+    wifiManager.begin();
+    wifiManager.connect("RT-GPON-2C0C", "uT7FQQ4K");
     initNvs();
     temp.begin();
     lv_init();
