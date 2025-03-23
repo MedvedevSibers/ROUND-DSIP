@@ -26,6 +26,8 @@ extern "C" {
 #include "ui_comp.h"
 #include "ui_comp_hook.h"
 #include "ui_events.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 void animBtnClick_Animation(lv_obj_t * TargetObject, int delay);
 // SCREEN: ui_Screen1
@@ -69,5 +71,5 @@ void ui_init(void);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
-
+extern SemaphoreHandle_t gui_mutex;
 #endif

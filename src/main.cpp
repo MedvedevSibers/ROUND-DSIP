@@ -6,6 +6,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Preferences.h>
+#include "HeaterController.h"
 #include "wireless_control.cpp"
 
 #define RW_MODE false  //Варианты работы с памятью
@@ -19,6 +20,8 @@ static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 
 AsyncWiFiManager wifiManager;
 
+HeaterController* heater;
+
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14); // пины для работы с тачскрином
 
@@ -30,9 +33,6 @@ OneWire oneWire(TEMP_PIN);
 DallasTemperature temp(&oneWire);
 
 Preferences nvs;
-
-TaskHandle_t TaskTempCheck_t;
-SemaphoreHandle_t gui_mutex;
 
 float floor_temp = 32; // текущая температура
 int floor_setpoint; // установленная температура пола
@@ -56,10 +56,6 @@ void initPwmSetup() {
     digitalWrite(RELAY_PIN, LOW);
 }
 
-void uiSetValues () {
-
-}
-
 void initNvs() {
   nvs.begin("stored_values", RW_MODE);
   bool tpInit = nvs.isKey("nvsInit");
@@ -75,34 +71,10 @@ void initNvs() {
   nvs.end();
 }
 
-void taskTempCheck (void *pvParameters) {
-    float tempVal;
-    char tempStr[10];
-    while(1){
-        temp.requestTemperatures();
-        tempVal = temp.getTempCByIndex(0);
-        floor_temp = tempVal;
-        if (floor_temp >= floor_setpoint + 1){
-            digitalWrite(RELAY_PIN, HIGH);
-            Serial.print("OFF");
-            Serial.print(digitalRead(RELAY_PIN));
-        }
-        else if (floor_temp < floor_setpoint){
-            digitalWrite(RELAY_PIN, LOW);
-            Serial.print("ON");
-            Serial.print(digitalRead(RELAY_PIN));
-        }
-        dtostrf(tempVal,7,2,tempStr);
-        xSemaphoreTake(gui_mutex, portMAX_DELAY);
-        lv_label_set_text(ui_labelActTemp,tempStr);
-        xSemaphoreGive(gui_mutex);
-        vTaskDelay(300/ portTICK_PERIOD_MS);
-    }
-}
-
 static void event_arc_temp_change (lv_event_t * e) {
   int val = lv_arc_get_value(ui_arcTempSettings);
   floor_setpoint = val;
+  heater->setTargetTemperature(floor_setpoint);
   nvs.begin("stored_values", RW_MODE);
   nvs.putInt("saved_temp", floor_setpoint);
   nvs.end();
@@ -178,7 +150,6 @@ void my_touchpad_read (lv_indev_t * indev_driver, lv_indev_data_t * data)
 void setup ()
 {
     Serial.begin( 115200 ); /* prepare for possible serial debug */
-    gui_mutex = xSemaphoreCreateMutex();
     wifiManager.begin();
     wifiManager.connect("RT-GPON-2C0C", "uT7FQQ4K");
     initNvs();
@@ -207,9 +178,11 @@ void setup ()
     lv_tick_set_cb( my_tick_get_cb );
 
     ui_init();
+    heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
+    heater->setPIDTunings(2.0, 5.0, 1.0);
+    heater->setTargetTemperature(floor_setpoint);
     initPwmSetup();
     initEventSetup();
-    xTaskCreatePinnedToCore(taskTempCheck, "TempTask", 4096, NULL, 1, &TaskTempCheck_t, 0);
 
     Serial.println( "Setup done" );
 }

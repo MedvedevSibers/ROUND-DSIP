@@ -5,10 +5,14 @@
 
 #include "ui.h"
 #include "ui_helpers.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
 
 ///////////////////// VARIABLES ////////////////////
 void animBtnClick_Animation(lv_obj_t * TargetObject, int delay);
 
+SemaphoreHandle_t gui_mutex;
 
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
@@ -135,6 +139,7 @@ void ui_event_ArcPUMP(lv_event_t * e)
 void ui_init(void)
 {
     LV_EVENT_GET_COMP_CHILD = lv_event_register_id();
+    gui_mutex = xSemaphoreCreateMutex();
 
     lv_disp_t * dispp = lv_display_get_default();
     lv_theme_t * theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),

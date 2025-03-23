@@ -101,8 +101,13 @@ void HeaterController::temperatureTask() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     
     while (true) {
+        char tempStr[10];
         sensors->requestTemperatures();
         float temp = sensors->getTempC(sensorAddress);
+        dtostrf(temp,7,2,tempStr);
+        xSemaphoreTake(gui_mutex, portMAX_DELAY);
+        lv_label_set_text(ui_labelActTemp,tempStr);
+        xSemaphoreGive(gui_mutex);
         
         if (temp != DEVICE_DISCONNECTED_C) {
             xSemaphoreTake(tempMutex, portMAX_DELAY);
