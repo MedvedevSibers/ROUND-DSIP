@@ -179,10 +179,13 @@ void setup ()
 
     ui_init();
     heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
-    heater->setPIDTunings(2.0, 5.0, 1.0);
+    heater->setPIDTunings(180.0, 72.0, 112.0);
     heater->setTargetTemperature(floor_setpoint);
-    initPwmSetup();
     initEventSetup();
+    lv_arc_set_value(ui_arcTempSettings,floor_setpoint);
+    char buf[10];
+    dtostrf(floor_setpoint,4,2,buf);
+    lv_label_set_text(ui_labelActTemp, buf);
 
     Serial.println( "Setup done" );
 }

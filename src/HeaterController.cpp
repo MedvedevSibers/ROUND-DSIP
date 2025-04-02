@@ -97,7 +97,7 @@ void HeaterController::controlTaskWrapper(void* params) {
 
 // Реализация задач
 void HeaterController::temperatureTask() {
-    const TickType_t xFrequency = pdMS_TO_TICKS(1000);
+    const TickType_t xFrequency = pdMS_TO_TICKS(300);
     TickType_t xLastWakeTime = xTaskGetTickCount();
     
     while (true) {
@@ -120,7 +120,7 @@ void HeaterController::temperatureTask() {
 }
 
 void HeaterController::controlTask() {
-    const TickType_t xFrequency = pdMS_TO_TICKS(100);
+    const TickType_t xFrequency = pdMS_TO_TICKS(300);
     TickType_t xLastWakeTime = xTaskGetTickCount();
     
     while (true) {
@@ -137,6 +137,7 @@ void HeaterController::controlTask() {
             pidInput = localCurrent;
             pidController->Compute();
             ledcWrite(pwmChannel, (uint32_t)pidOutput);
+            Serial.print((uint32_t)pidOutput);
             xSemaphoreGive(pidMutex);
         }
         
