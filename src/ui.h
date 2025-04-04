@@ -89,5 +89,5 @@ void ui_init(void);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
-
+extern SemaphoreHandle_t gui_mutex;
 #endif
