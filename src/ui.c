@@ -40,9 +40,28 @@ lv_obj_t * ui_labelPumpInit;
 lv_obj_t * ui_labelPumpPower;
 lv_obj_t * ui_dropdownPwmFreq;
 lv_obj_t * ui_switchOnOffPump;
+
+
+// SCREEN: ui_Screen3
+void ui_Screen3_screen_init(void);
+void ui_event_Screen3(lv_event_t * e);
+lv_obj_t * ui_Screen3;
+lv_obj_t * ui_Roller2;
+lv_obj_t * ui_ButtonRollerUp;
+lv_obj_t * ui_Label2;
+lv_obj_t * ui_ButtonRollerUp1;
+lv_obj_t * ui_Label1;
+lv_obj_t * ui_SwitchMoistOnOff;
+lv_obj_t * ui_LabelMoistOnOff;
+lv_obj_t * ui_LableMoisture;
+void ui_event_ArcMoistLevel(lv_event_t * e);
+lv_obj_t * ui_ArcMoistLevel;
+lv_obj_t * ui_LabelMoistPrecentSign;
+lv_obj_t * ui_ArcMoistPumpPower;
 lv_obj_t * ui____initial_actions0;
 const lv_image_dsc_t * ui_imgset_372029319[1] = {&ui_img_1687522520};
 const lv_image_dsc_t * ui_imgset_372029313[1] = {&ui_img_699983090};
+const lv_image_dsc_t * ui_imgset_humidity_percentage_16dp_d9d9d9_fill0_wght300_grad0_opsz[1] = {&ui_img_humidity_percentage_16dp_d9d9d9_fill0_wght300_grad0_opsz20_png};
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16
@@ -124,6 +143,10 @@ void ui_event_Screen2(lv_event_t * e)
         lv_indev_wait_release(lv_indev_active());
         _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 300, 0, &ui_Screen1_screen_init);
     }
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_TOP) {
+        lv_indev_wait_release(lv_indev_active());
+        _ui_screen_change(&ui_Screen3, LV_SCR_LOAD_ANIM_MOVE_TOP, 300, 0, &ui_Screen3_screen_init);
+    }
 }
 void ui_event_ArcPUMP(lv_event_t * e)
 {
@@ -131,6 +154,23 @@ void ui_event_ArcPUMP(lv_event_t * e)
     lv_obj_t * target = lv_event_get_target(e);
     if(event_code == LV_EVENT_VALUE_CHANGED) {
         _ui_arc_set_text_value(ui_labelPumpPower, target, "", "");
+    }
+}
+void ui_event_Screen3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_BOTTOM) {
+        lv_indev_wait_release(lv_indev_active());
+        _ui_screen_change(&ui_Screen2, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 300, 0, &ui_Screen2_screen_init);
+    }
+}
+void ui_event_ArcMoistLevel(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_VALUE_CHANGED) {
+        _ui_arc_set_text_value(ui_LableMoisture, target, "", "");
     }
 }
 
@@ -147,6 +187,7 @@ void ui_init(void)
     lv_disp_set_theme(dispp, theme);
     ui_Screen1_screen_init();
     ui_Screen2_screen_init();
+    ui_Screen3_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_disp_load_scr(ui_Screen1);
 }

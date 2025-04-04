@@ -54,12 +54,30 @@ extern lv_obj_t * ui_labelPumpInit;
 extern lv_obj_t * ui_labelPumpPower;
 extern lv_obj_t * ui_dropdownPwmFreq;
 extern lv_obj_t * ui_switchOnOffPump;
+// SCREEN: ui_Screen3
+void ui_Screen3_screen_init(void);
+void ui_event_Screen3(lv_event_t * e);
+extern lv_obj_t * ui_Screen3;
+extern lv_obj_t * ui_Roller2;
+extern lv_obj_t * ui_ButtonRollerUp;
+extern lv_obj_t * ui_Label2;
+extern lv_obj_t * ui_ButtonRollerUp1;
+extern lv_obj_t * ui_Label1;
+extern lv_obj_t * ui_SwitchMoistOnOff;
+extern lv_obj_t * ui_LabelMoistOnOff;
+extern lv_obj_t * ui_LableMoisture;
+void ui_event_ArcMoistLevel(lv_event_t * e);
+extern lv_obj_t * ui_ArcMoistLevel;
+extern lv_obj_t * ui_LabelMoistPrecentSign;
+extern lv_obj_t * ui_ArcMoistPumpPower;
 extern lv_obj_t * ui____initial_actions0;
 
 
 LV_IMG_DECLARE(ui__temporary_image);
 LV_IMG_DECLARE(ui_img_1687522520);    // assets/+3232.png
 LV_IMG_DECLARE(ui_img_699983090);    // assets/-3232.png
+LV_IMG_DECLARE(
+    ui_img_humidity_percentage_16dp_d9d9d9_fill0_wght300_grad0_opsz20_png);    // assets/humidity_percentage_16dp_D9D9D9_FILL0_wght300_GRAD0_opsz20.png
 
 
 
@@ -71,5 +89,5 @@ void ui_init(void);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
-extern SemaphoreHandle_t gui_mutex;
+
 #endif
