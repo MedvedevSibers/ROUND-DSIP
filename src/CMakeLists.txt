@@ -1,6 +1,4 @@
-SET(SOURCES ui_comp_switchpelpowerpolarity.c
-    ui_comp.c
-    ui_Screen1.c
+SET(SOURCES ui_Screen1.c
     ui_Screen2.c
     ui_Screen3.c
     ui.c
@@ -8,7 +6,7 @@ SET(SOURCES ui_comp_switchpelpowerpolarity.c
     ui_helpers.c
     ui_img_1687522520.c
     ui_img_699983090.c
-    ui_img_humidity_percentage_16dp_d9d9d9_fill0_wght300_grad0_opsz20_png.c
-    ui_temporary_image.c)
+    ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c
+    ui_img_bolt_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c)
 
 add_library(ui ${SOURCES})
