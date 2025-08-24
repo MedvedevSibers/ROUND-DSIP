@@ -51,7 +51,7 @@ void my_print(const char * buf)
 static uint32_t my_tick_get_cb (void) { return millis(); }
 
 void initPwmSetup() {
-    ledcSetup(0,2500,8);
+    ledcSetup(0,20000,8);
     pinMode(RELAY_PIN, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
 }
@@ -185,8 +185,7 @@ void setup ()
     lv_arc_set_value(ui_arcTempSettings,floor_setpoint);
     char buf[10];
     dtostrf(floor_setpoint,4,2,buf);
-    lv_label_set_text(ui_labelActTemp, buf);
-
+    lv_label_set_text(ui_tempLabel, buf);
     Serial.println( "Setup done" );
 }
 

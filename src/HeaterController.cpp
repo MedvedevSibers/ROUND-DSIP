@@ -22,7 +22,7 @@ HeaterController::HeaterController(int sensorPin, int heaterPin, const String& c
     
     // Настройка вывода управления
     if (controlMode == "pid") {
-        ledcSetup(pwmChannel, 5000, 8);
+        ledcSetup(pwmChannel, 20000, 8);
         ledcAttachPin(heaterPin, pwmChannel);
         pidController = new PID(&pidInput, &pidOutput, &pidSetpoint, 2.0, 5.0, 1.0, DIRECT);
         pidController->SetMode(AUTOMATIC);
