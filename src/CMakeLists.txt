@@ -1,13 +1,13 @@
-SET(SOURCES ui_Screen1.c
-    ui_Screen2.c
-    ui_Screen3.c
-    ui_Screen4.c
+SET(SOURCES screens/ui_Screen1.c
+    screens/ui_Screen2.c
+    screens/ui_Screen3.c
+    screens/ui_Screen4.c
     ui.c
-    ui_comp_hook.c
+    components/ui_comp_hook.c
     ui_helpers.c
-    ui_img_1687522520.c
-    ui_img_699983090.c
-    ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c
-    ui_img_bolt_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c)
+    images/ui_img_1687522520.c
+    images/ui_img_699983090.c
+    images/ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c
+    images/ui_img_bolt_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png.c)
 
 add_library(ui ${SOURCES})
