@@ -45,9 +45,9 @@ extern lv_obj_t * ui____initial_actions0;
 LV_IMG_DECLARE(ui_img_1687522520);    // assets/+3232.png
 LV_IMG_DECLARE(ui_img_699983090);    // assets/-3232.png
 LV_IMG_DECLARE(
-    ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png);    // assets/water_drop_24dp_D9D9D9_FILL0_wght600_GRAD0_opsz24.png
-LV_IMG_DECLARE(
     ui_img_bolt_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png);    // assets/bolt_24dp_D9D9D9_FILL0_wght600_GRAD0_opsz24.png
+LV_IMG_DECLARE(
+    ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png);    // assets/water_drop_24dp_D9D9D9_FILL0_wght600_GRAD0_opsz24.png
 
 // UI INIT
 void ui_init(void);

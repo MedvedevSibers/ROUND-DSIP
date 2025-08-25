@@ -6,19 +6,28 @@
 #include "../ui.h"
 
 lv_obj_t * ui_Screen3 = NULL;
-lv_obj_t * ui_ArcMoistLevel = NULL;
-lv_obj_t * ui_Roller2 = NULL;
+lv_obj_t * ui_RollerMenu = NULL;
 lv_obj_t * ui_ButtonRollerUp = NULL;
 lv_obj_t * ui_LabelUp = NULL;
 lv_obj_t * ui_ButtonRollerDown = NULL;
 lv_obj_t * ui_LabelDown = NULL;
+lv_obj_t * ui_MoistureContainer = NULL;
 lv_obj_t * ui_SwitchMoistOnOff = NULL;
-lv_obj_t * ui_LabelMoistOnOff = NULL;
-lv_obj_t * ui_LableMoistureTraget = NULL;
-lv_obj_t * ui_LabelMoistPrecentSign = NULL;
-lv_obj_t * ui_SliderMoistureVolume = NULL;
 lv_obj_t * ui_SliderPumpPower = NULL;
 lv_obj_t * ui_LableMoistureCurrent = NULL;
+lv_obj_t * ui_SliderMoistureVolume = NULL;
+lv_obj_t * ui_LabelMoistPrecentSign = NULL;
+lv_obj_t * ui_LableMoistureTraget = NULL;
+lv_obj_t * ui_ArcMoistLevel = NULL;
+lv_obj_t * ui_HeaterContainer = NULL;
+lv_obj_t * ui_ArcHeatLevel = NULL;
+lv_obj_t * ui_SwitchHeaterOnOff = NULL;
+lv_obj_t * ui_LabelCurrent1 = NULL;
+lv_obj_t * ui_LabelSetpoint = NULL;
+lv_obj_t * ui_LabelTempSetpoint = NULL;
+lv_obj_t * ui_LabelTempCurrent = NULL;
+lv_obj_t * ui_FeederContainer = NULL;
+lv_obj_t * ui_LightContainer = NULL;
 // event funtions
 void ui_event_Screen3(lv_event_t * e)
 {
@@ -27,6 +36,15 @@ void ui_event_Screen3(lv_event_t * e)
     if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_BOTTOM) {
         lv_indev_wait_release(lv_indev_active());
         _ui_screen_change(&ui_Screen2, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 300, 0, &ui_Screen2_screen_init);
+    }
+}
+
+void ui_event_RollerMenu(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_VALUE_CHANGED) {
+        _ui_flag_modify(ui_SwitchMoistOnOff, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
     }
 }
 
@@ -40,12 +58,13 @@ void ui_event_ArcMoistLevel(lv_event_t * e)
     }
 }
 
-void ui_event_Roller2(lv_event_t * e)
+void ui_event_ArcHeatLevel(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
 
     if(event_code == LV_EVENT_VALUE_CHANGED) {
-        _ui_flag_modify(ui_SwitchMoistOnOff, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        _ui_arc_set_text_value(ui_LabelTempSetpoint, target, "", "");
     }
 }
 
@@ -56,49 +75,26 @@ void ui_Screen3_screen_init(void)
     ui_Screen3 = lv_obj_create(NULL);
     lv_obj_remove_flag(ui_Screen3, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_ArcMoistLevel = lv_arc_create(ui_Screen3);
-    lv_obj_set_width(ui_ArcMoistLevel, 200);
-    lv_obj_set_height(ui_ArcMoistLevel, 200);
-    lv_obj_set_x(ui_ArcMoistLevel, -2);
-    lv_obj_set_y(ui_ArcMoistLevel, -2);
-    lv_obj_set_align(ui_ArcMoistLevel, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_ArcMoistLevel, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
-    lv_arc_set_value(ui_ArcMoistLevel, 50);
-    lv_arc_set_bg_angles(ui_ArcMoistLevel, 0, 80);
-    lv_arc_set_rotation(ui_ArcMoistLevel, 260);
-    lv_obj_set_style_arc_rounded(ui_ArcMoistLevel, false, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_RollerMenu = lv_roller_create(ui_Screen3);
+    lv_roller_set_options(ui_RollerMenu, "FEEDER\nLIGHT\nHEATER\nMOISTURE", LV_ROLLER_MODE_NORMAL);
+    lv_roller_set_selected(ui_RollerMenu, 3, LV_ANIM_OFF);
+    lv_obj_set_height(ui_RollerMenu, 50);
+    lv_obj_set_width(ui_RollerMenu, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_x(ui_RollerMenu, -55);
+    lv_obj_set_y(ui_RollerMenu, 0);
+    lv_obj_set_align(ui_RollerMenu, LV_ALIGN_CENTER);
+    lv_obj_remove_flag(ui_RollerMenu, LV_OBJ_FLAG_PRESS_LOCK);      /// Flags
+    lv_obj_set_style_text_align(ui_RollerMenu, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_RollerMenu, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_RollerMenu, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_RollerMenu, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_RollerMenu, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_RollerMenu, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_set_style_arc_color(ui_ArcMoistLevel, lv_color_hex(0x09DFFF), LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_arc_opa(ui_ArcMoistLevel, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_arc_rounded(ui_ArcMoistLevel, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-
-    lv_obj_set_style_bg_color(ui_ArcMoistLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_ArcMoistLevel, 0, LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_ArcMoistLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_ArcMoistLevel, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(ui_ArcMoistLevel, 2, LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_side(ui_ArcMoistLevel, LV_BORDER_SIDE_FULL, LV_PART_KNOB | LV_STATE_DEFAULT);
-
-    ui_Roller2 = lv_roller_create(ui_Screen3);
-    lv_roller_set_options(ui_Roller2, "FEEDER\nLIGHT\nHEATER\nMOISTURE", LV_ROLLER_MODE_NORMAL);
-    lv_roller_set_selected(ui_Roller2, 4, LV_ANIM_OFF);
-    lv_obj_set_height(ui_Roller2, 50);
-    lv_obj_set_width(ui_Roller2, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_x(ui_Roller2, -55);
-    lv_obj_set_y(ui_Roller2, 0);
-    lv_obj_set_align(ui_Roller2, LV_ALIGN_CENTER);
-    lv_obj_remove_flag(ui_Roller2, LV_OBJ_FLAG_PRESS_LOCK);      /// Flags
-    lv_obj_set_style_text_align(ui_Roller2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_Roller2, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Roller2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Roller2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_Roller2, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_Roller2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    lv_obj_set_style_radius(ui_Roller2, 20, LV_PART_SELECTED | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Roller2, lv_color_hex(0x333333), LV_PART_SELECTED | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Roller2, 70, LV_PART_SELECTED | LV_STATE_DEFAULT);
-    lv_obj_set_style_clip_corner(ui_Roller2, false, LV_PART_SELECTED | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui_RollerMenu, 20, LV_PART_SELECTED | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_RollerMenu, lv_color_hex(0x333333), LV_PART_SELECTED | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_RollerMenu, 70, LV_PART_SELECTED | LV_STATE_DEFAULT);
+    lv_obj_set_style_clip_corner(ui_RollerMenu, false, LV_PART_SELECTED | LV_STATE_DEFAULT);
 
     ui_ButtonRollerUp = lv_button_create(ui_Screen3);
     lv_obj_set_width(ui_ButtonRollerUp, 30);
@@ -136,10 +132,18 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_align(ui_LabelDown, LV_ALIGN_CENTER);
     lv_label_set_text(ui_LabelDown, ">");
 
-    ui_SwitchMoistOnOff = lv_switch_create(ui_Screen3);
+    ui_MoistureContainer = lv_obj_create(ui_Screen3);
+    lv_obj_remove_style_all(ui_MoistureContainer);
+    lv_obj_set_width(ui_MoistureContainer, 240);
+    lv_obj_set_height(ui_MoistureContainer, 240);
+    lv_obj_set_align(ui_MoistureContainer, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);     /// Flags
+    lv_obj_remove_flag(ui_MoistureContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_SwitchMoistOnOff = lv_switch_create(ui_MoistureContainer);
     lv_obj_set_width(ui_SwitchMoistOnOff, 50);
     lv_obj_set_height(ui_SwitchMoistOnOff, 25);
-    lv_obj_set_x(ui_SwitchMoistOnOff, 85);
+    lv_obj_set_x(ui_SwitchMoistOnOff, 58);
     lv_obj_set_y(ui_SwitchMoistOnOff, 0);
     lv_obj_set_align(ui_SwitchMoistOnOff, LV_ALIGN_CENTER);
     lv_obj_set_style_bg_color(ui_SwitchMoistOnOff, lv_color_hex(0xFF8D01), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -156,68 +160,7 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_style_bg_color(ui_SwitchMoistOnOff, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_CHECKED);
     lv_obj_set_style_bg_opa(ui_SwitchMoistOnOff, 255, LV_PART_KNOB | LV_STATE_CHECKED);
 
-    ui_LabelMoistOnOff = lv_label_create(ui_Screen3);
-    lv_obj_set_width(ui_LabelMoistOnOff, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_LabelMoistOnOff, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_LabelMoistOnOff, 43);
-    lv_obj_set_y(ui_LabelMoistOnOff, 1);
-    lv_obj_set_align(ui_LabelMoistOnOff, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LabelMoistOnOff, "I / O");
-    lv_obj_set_style_text_font(ui_LabelMoistOnOff, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_LableMoistureTraget = lv_label_create(ui_Screen3);
-    lv_obj_set_width(ui_LableMoistureTraget, 35);
-    lv_obj_set_height(ui_LableMoistureTraget, 22);
-    lv_obj_set_x(ui_LableMoistureTraget, 21);
-    lv_obj_set_y(ui_LableMoistureTraget, -63);
-    lv_obj_set_align(ui_LableMoistureTraget, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LableMoistureTraget, "50");
-    lv_obj_set_style_text_align(ui_LableMoistureTraget, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_LableMoistureTraget, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_radius(ui_LableMoistureTraget, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_LableMoistureTraget, lv_color_hex(0x333333), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_LableMoistureTraget, 70, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_LabelMoistPrecentSign = lv_label_create(ui_Screen3);
-    lv_obj_set_width(ui_LabelMoistPrecentSign, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_LabelMoistPrecentSign, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_LabelMoistPrecentSign, -9);
-    lv_obj_set_y(ui_LabelMoistPrecentSign, -63);
-    lv_obj_set_align(ui_LabelMoistPrecentSign, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LabelMoistPrecentSign, "%");
-
-    ui_SliderMoistureVolume = lv_slider_create(ui_Screen3);
-    lv_slider_set_range(ui_SliderMoistureVolume, 0, 10);
-    lv_slider_set_value(ui_SliderMoistureVolume, 0, LV_ANIM_OFF);
-    if(lv_slider_get_mode(ui_SliderMoistureVolume) == LV_SLIDER_MODE_RANGE) lv_slider_set_left_value(
-            ui_SliderMoistureVolume, 10, LV_ANIM_OFF);
-    lv_obj_set_width(ui_SliderMoistureVolume, 84);
-    lv_obj_set_height(ui_SliderMoistureVolume, 10);
-    lv_obj_set_x(ui_SliderMoistureVolume, 39);
-    lv_obj_set_y(ui_SliderMoistureVolume, 48);
-    lv_obj_set_align(ui_SliderMoistureVolume, LV_ALIGN_CENTER);
-    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0x333333), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 120, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0x89FFFE), LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_color(ui_SliderMoistureVolume, lv_color_hex(0x000DFF), LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_main_stop(ui_SliderMoistureVolume, 0, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_stop(ui_SliderMoistureVolume, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_grad_dir(ui_SliderMoistureVolume, LV_GRAD_DIR_HOR, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-
-    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 0, LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_image_src(ui_SliderMoistureVolume, &ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png,
-                                  LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_SliderMoistureVolume, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_opa(ui_SliderMoistureVolume, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
-
-    //Compensating for LVGL9.1 draw crash with bar/slider max value when top-padding is nonzero and right-padding is 0
-    if(lv_obj_get_style_pad_top(ui_SliderMoistureVolume,
-                                LV_PART_MAIN) > 0) lv_obj_set_style_pad_right(ui_SliderMoistureVolume,
-                                                                                  lv_obj_get_style_pad_right(ui_SliderMoistureVolume, LV_PART_MAIN) + 1, LV_PART_MAIN);
-    ui_SliderPumpPower = lv_slider_create(ui_Screen3);
+    ui_SliderPumpPower = lv_slider_create(ui_MoistureContainer);
     lv_slider_set_range(ui_SliderPumpPower, 0, 255);
     lv_slider_set_value(ui_SliderPumpPower, 0, LV_ANIM_OFF);
     if(lv_slider_get_mode(ui_SliderPumpPower) == LV_SLIDER_MODE_RANGE) lv_slider_set_left_value(ui_SliderPumpPower, 0,
@@ -249,7 +192,7 @@ void ui_Screen3_screen_init(void)
     //Compensating for LVGL9.1 draw crash with bar/slider max value when top-padding is nonzero and right-padding is 0
     if(lv_obj_get_style_pad_top(ui_SliderPumpPower, LV_PART_MAIN) > 0) lv_obj_set_style_pad_right(ui_SliderPumpPower,
                                                                                                       lv_obj_get_style_pad_right(ui_SliderPumpPower, LV_PART_MAIN) + 1, LV_PART_MAIN);
-    ui_LableMoistureCurrent = lv_label_create(ui_Screen3);
+    ui_LableMoistureCurrent = lv_label_create(ui_MoistureContainer);
     lv_obj_set_width(ui_LableMoistureCurrent, 40);
     lv_obj_set_height(ui_LableMoistureCurrent, 22);
     lv_obj_set_x(ui_LableMoistureCurrent, 21);
@@ -261,8 +204,188 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_style_text_align(ui_LableMoistureCurrent, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_LableMoistureCurrent, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_SliderMoistureVolume = lv_slider_create(ui_MoistureContainer);
+    lv_slider_set_range(ui_SliderMoistureVolume, 0, 10);
+    lv_slider_set_value(ui_SliderMoistureVolume, 0, LV_ANIM_OFF);
+    if(lv_slider_get_mode(ui_SliderMoistureVolume) == LV_SLIDER_MODE_RANGE) lv_slider_set_left_value(
+            ui_SliderMoistureVolume, 10, LV_ANIM_OFF);
+    lv_obj_set_width(ui_SliderMoistureVolume, 84);
+    lv_obj_set_height(ui_SliderMoistureVolume, 10);
+    lv_obj_set_x(ui_SliderMoistureVolume, 39);
+    lv_obj_set_y(ui_SliderMoistureVolume, 48);
+    lv_obj_set_align(ui_SliderMoistureVolume, LV_ALIGN_CENTER);
+    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0x333333), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 120, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0x89FFFE), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_color(ui_SliderMoistureVolume, lv_color_hex(0x000DFF), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_main_stop(ui_SliderMoistureVolume, 0, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_stop(ui_SliderMoistureVolume, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_grad_dir(ui_SliderMoistureVolume, LV_GRAD_DIR_HOR, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_bg_color(ui_SliderMoistureVolume, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_SliderMoistureVolume, 0, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_image_src(ui_SliderMoistureVolume, &ui_img_water_drop_24dp_d9d9d9_fill0_wght600_grad0_opsz24_png,
+                                  LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_SliderMoistureVolume, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_SliderMoistureVolume, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+
+    //Compensating for LVGL9.1 draw crash with bar/slider max value when top-padding is nonzero and right-padding is 0
+    if(lv_obj_get_style_pad_top(ui_SliderMoistureVolume,
+                                LV_PART_MAIN) > 0) lv_obj_set_style_pad_right(ui_SliderMoistureVolume,
+                                                                                  lv_obj_get_style_pad_right(ui_SliderMoistureVolume, LV_PART_MAIN) + 1, LV_PART_MAIN);
+    ui_LabelMoistPrecentSign = lv_label_create(ui_MoistureContainer);
+    lv_obj_set_width(ui_LabelMoistPrecentSign, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LabelMoistPrecentSign, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LabelMoistPrecentSign, -9);
+    lv_obj_set_y(ui_LabelMoistPrecentSign, -63);
+    lv_obj_set_align(ui_LabelMoistPrecentSign, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LabelMoistPrecentSign, "%");
+
+    ui_LableMoistureTraget = lv_label_create(ui_MoistureContainer);
+    lv_obj_set_width(ui_LableMoistureTraget, 35);
+    lv_obj_set_height(ui_LableMoistureTraget, 22);
+    lv_obj_set_x(ui_LableMoistureTraget, 21);
+    lv_obj_set_y(ui_LableMoistureTraget, -63);
+    lv_obj_set_align(ui_LableMoistureTraget, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LableMoistureTraget, "50");
+    lv_obj_set_style_text_align(ui_LableMoistureTraget, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_LableMoistureTraget, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_radius(ui_LableMoistureTraget, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_LableMoistureTraget, lv_color_hex(0x333333), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_LableMoistureTraget, 70, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_ArcMoistLevel = lv_arc_create(ui_MoistureContainer);
+    lv_obj_set_width(ui_ArcMoistLevel, 220);
+    lv_obj_set_height(ui_ArcMoistLevel, 220);
+    lv_obj_set_x(ui_ArcMoistLevel, -2);
+    lv_obj_set_y(ui_ArcMoistLevel, -2);
+    lv_obj_set_align(ui_ArcMoistLevel, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_ArcMoistLevel, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_arc_set_value(ui_ArcMoistLevel, 50);
+    lv_arc_set_bg_angles(ui_ArcMoistLevel, 0, 80);
+    lv_arc_set_rotation(ui_ArcMoistLevel, 260);
+    lv_obj_set_style_arc_rounded(ui_ArcMoistLevel, false, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_arc_color(ui_ArcMoistLevel, lv_color_hex(0x09DFFF), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_arc_opa(ui_ArcMoistLevel, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_arc_rounded(ui_ArcMoistLevel, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_bg_color(ui_ArcMoistLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_ArcMoistLevel, 0, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_ArcMoistLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_ArcMoistLevel, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_ArcMoistLevel, 2, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui_ArcMoistLevel, LV_BORDER_SIDE_FULL, LV_PART_KNOB | LV_STATE_DEFAULT);
+
+    ui_HeaterContainer = lv_obj_create(ui_Screen3);
+    lv_obj_remove_style_all(ui_HeaterContainer);
+    lv_obj_set_width(ui_HeaterContainer, 240);
+    lv_obj_set_height(ui_HeaterContainer, 240);
+    lv_obj_set_align(ui_HeaterContainer, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);     /// Flags
+    lv_obj_remove_flag(ui_HeaterContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_ArcHeatLevel = lv_arc_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_ArcHeatLevel, 220);
+    lv_obj_set_height(ui_ArcHeatLevel, 220);
+    lv_obj_set_x(ui_ArcHeatLevel, -2);
+    lv_obj_set_y(ui_ArcHeatLevel, -2);
+    lv_obj_set_align(ui_ArcHeatLevel, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_ArcHeatLevel, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_arc_set_range(ui_ArcHeatLevel, 20, 50);
+    lv_arc_set_value(ui_ArcHeatLevel, 50);
+    lv_arc_set_bg_angles(ui_ArcHeatLevel, 270, 90);
+    lv_arc_set_mode(ui_ArcHeatLevel, LV_ARC_MODE_REVERSE);
+    lv_obj_set_style_arc_rounded(ui_ArcHeatLevel, false, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_arc_color(ui_ArcHeatLevel, lv_color_hex(0xFA6875), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_arc_opa(ui_ArcHeatLevel, 255, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    lv_obj_set_style_arc_rounded(ui_ArcHeatLevel, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_bg_color(ui_ArcHeatLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_ArcHeatLevel, 0, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_ArcHeatLevel, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_ArcHeatLevel, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_ArcHeatLevel, 2, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_side(ui_ArcHeatLevel, LV_BORDER_SIDE_FULL, LV_PART_KNOB | LV_STATE_DEFAULT);
+
+    ui_SwitchHeaterOnOff = lv_switch_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_SwitchHeaterOnOff, 50);
+    lv_obj_set_height(ui_SwitchHeaterOnOff, 25);
+    lv_obj_set_x(ui_SwitchHeaterOnOff, 53);
+    lv_obj_set_y(ui_SwitchHeaterOnOff, 0);
+    lv_obj_set_align(ui_SwitchHeaterOnOff, LV_ALIGN_CENTER);
+    lv_obj_set_style_bg_color(ui_SwitchHeaterOnOff, lv_color_hex(0xFF8D01), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_SwitchHeaterOnOff, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_set_style_bg_color(ui_SwitchHeaterOnOff, lv_color_hex(0x1AFF58), LV_PART_INDICATOR | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_SwitchHeaterOnOff, 255, LV_PART_INDICATOR | LV_STATE_CHECKED);
+
+    lv_obj_set_style_bg_color(ui_SwitchHeaterOnOff, lv_color_hex(0xD2D2D2), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_SwitchHeaterOnOff, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_SwitchHeaterOnOff, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_SwitchHeaterOnOff, 255, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_SwitchHeaterOnOff, 3, LV_PART_KNOB | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_SwitchHeaterOnOff, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_SwitchHeaterOnOff, 255, LV_PART_KNOB | LV_STATE_CHECKED);
+
+    ui_LabelCurrent1 = lv_label_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_LabelCurrent1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LabelCurrent1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LabelCurrent1, 0);
+    lv_obj_set_y(ui_LabelCurrent1, 70);
+    lv_obj_set_align(ui_LabelCurrent1, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LabelCurrent1, "Current:");
+
+    ui_LabelSetpoint = lv_label_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_LabelSetpoint, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LabelSetpoint, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LabelSetpoint, 0);
+    lv_obj_set_y(ui_LabelSetpoint, -69);
+    lv_obj_set_align(ui_LabelSetpoint, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LabelSetpoint, "Setpoint:");
+
+    ui_LabelTempSetpoint = lv_label_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_LabelTempSetpoint, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LabelTempSetpoint, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LabelTempSetpoint, 39);
+    lv_obj_set_y(ui_LabelTempSetpoint, -42);
+    lv_obj_set_align(ui_LabelTempSetpoint, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LabelTempSetpoint, "00");
+    lv_obj_set_style_text_font(ui_LabelTempSetpoint, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_LabelTempCurrent = lv_label_create(ui_HeaterContainer);
+    lv_obj_set_width(ui_LabelTempCurrent, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LabelTempCurrent, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LabelTempCurrent, 39);
+    lv_obj_set_y(ui_LabelTempCurrent, 42);
+    lv_obj_set_align(ui_LabelTempCurrent, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LabelTempCurrent, "00");
+    lv_obj_set_style_text_color(ui_LabelTempCurrent, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_LabelTempCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_LabelTempCurrent, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_FeederContainer = lv_obj_create(ui_Screen3);
+    lv_obj_remove_style_all(ui_FeederContainer);
+    lv_obj_set_width(ui_FeederContainer, 240);
+    lv_obj_set_height(ui_FeederContainer, 240);
+    lv_obj_set_align(ui_FeederContainer, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);     /// Flags
+    lv_obj_remove_flag(ui_FeederContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_LightContainer = lv_obj_create(ui_Screen3);
+    lv_obj_remove_style_all(ui_LightContainer);
+    lv_obj_set_width(ui_LightContainer, 240);
+    lv_obj_set_height(ui_LightContainer, 240);
+    lv_obj_set_align(ui_LightContainer, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);     /// Flags
+    lv_obj_remove_flag(ui_LightContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    lv_obj_add_event_cb(ui_RollerMenu, ui_event_RollerMenu, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_ArcMoistLevel, ui_event_ArcMoistLevel, LV_EVENT_ALL, NULL);
-    lv_obj_add_event_cb(ui_Roller2, ui_event_Roller2, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_ArcHeatLevel, ui_event_ArcHeatLevel, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Screen3, ui_event_Screen3, LV_EVENT_ALL, NULL);
 
 }
@@ -273,18 +396,27 @@ void ui_Screen3_screen_destroy(void)
 
     // NULL screen variables
     ui_Screen3 = NULL;
-    ui_ArcMoistLevel = NULL;
-    ui_Roller2 = NULL;
+    ui_RollerMenu = NULL;
     ui_ButtonRollerUp = NULL;
     ui_LabelUp = NULL;
     ui_ButtonRollerDown = NULL;
     ui_LabelDown = NULL;
+    ui_MoistureContainer = NULL;
     ui_SwitchMoistOnOff = NULL;
-    ui_LabelMoistOnOff = NULL;
-    ui_LableMoistureTraget = NULL;
-    ui_LabelMoistPrecentSign = NULL;
-    ui_SliderMoistureVolume = NULL;
     ui_SliderPumpPower = NULL;
     ui_LableMoistureCurrent = NULL;
+    ui_SliderMoistureVolume = NULL;
+    ui_LabelMoistPrecentSign = NULL;
+    ui_LableMoistureTraget = NULL;
+    ui_ArcMoistLevel = NULL;
+    ui_HeaterContainer = NULL;
+    ui_ArcHeatLevel = NULL;
+    ui_SwitchHeaterOnOff = NULL;
+    ui_LabelCurrent1 = NULL;
+    ui_LabelSetpoint = NULL;
+    ui_LabelTempSetpoint = NULL;
+    ui_LabelTempCurrent = NULL;
+    ui_FeederContainer = NULL;
+    ui_LightContainer = NULL;
 
 }
