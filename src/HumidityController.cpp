@@ -2,9 +2,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-HumidityController::HumidityController(uint8_t sdaPin, uint8_t sclPin, uint8_t enablePin, uint8_t pwmPin)
+HumidityController::HumidityController(uint8_t sdaPin, uint8_t sclPin, uint8_t pwmPin)
     : ahtSensor(AHTXX_ADDRESS_X38, AHT1x_SENSOR),
-      pumpEnablePin(enablePin),
       pumpPwmPin(pwmPin),
       pwmChannel(LEDC_CHANNEL_0),
       controlTaskHandle(NULL) {
@@ -13,16 +12,29 @@ HumidityController::HumidityController(uint8_t sdaPin, uint8_t sclPin, uint8_t e
 
 void HumidityController::begin() {
     ahtSensor.begin();
-    pinMode(pumpEnablePin, OUTPUT);
-    digitalWrite(pumpEnablePin, LOW);
     setupPWM();
+    
 
     preferences.begin("humidity-ctrl", false);
-    targetHumidity = preferences.getFloat("targetHumid", 50.0f);
+    targetHumidity = preferences.getInt("targetHumid", 50);
     pumpDuration = preferences.getUChar("pumpDuration", 5);
     pumpPower = preferences.getUChar("pumpPower", 200);
     controlActive = preferences.getBool("controlActive", false);
     preferences.end();
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%.1f", targetHumidity);
+    xSemaphoreTake(gui_mutex, portMAX_DELAY);
+    if (controlActive) {
+        lv_obj_add_state(ui_SwitchMoistOnOff,LV_STATE_CHECKED);
+    }
+    else {
+        lv_obj_remove_state(ui_SwitchMoistOnOff,LV_STATE_CHECKED);
+    }
+    lv_label_set_text(ui_LableMoistureTraget,buffer);
+    lv_arc_set_value(ui_ArcMoistLevel,targetHumidity);
+    lv_slider_set_value(ui_SliderMoistureVolume,pumpDuration,LV_ANIM_OFF);
+    lv_slider_set_value(ui_SliderPumpPower,pumpPower,LV_ANIM_OFF);
+    xSemaphoreGive(gui_mutex);
 
     xTaskCreate(controlTask, "HumidityControl", 4096, this, 1, &controlTaskHandle);
 }
@@ -63,6 +75,14 @@ void HumidityController::controlTask(void* params) {
         if(controller->controlActive) {
             float humidity = controller->ahtSensor.readHumidity();
             float temperature = controller->ahtSensor.readTemperature();
+            bool container_visible = lv_obj_is_visible(ui_MoistureContainer);
+            if (container_visible) {
+                char buffer[20];
+                snprintf(buffer, sizeof(buffer), "%.1f", humidity);
+                xSemaphoreTake(gui_mutex, portMAX_DELAY);
+                lv_label_set_text(ui_LableMoistureCurrent, buffer);
+                xSemaphoreGive(gui_mutex);
+            }
             
             if(!isnan(humidity) && !isnan(temperature)) {
                 if(humidity < controller->targetHumidity && !controller->pumpRunning) {
@@ -78,7 +98,6 @@ void HumidityController::activatePump() {
     pumpRunning = true;
     ledc_set_duty(LEDC_LOW_SPEED_MODE, pwmChannel, pumpPower);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, pwmChannel);
-    digitalWrite(pumpEnablePin, HIGH);
     
     xTaskCreate(
         [](void* params) {
@@ -96,13 +115,12 @@ void HumidityController::activatePump() {
 }
 
 void HumidityController::deactivatePump() {
-    digitalWrite(pumpEnablePin, LOW);
     ledc_set_duty(LEDC_LOW_SPEED_MODE, pwmChannel, 0);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, pwmChannel);
     pumpRunning = false;
 }
 
-void HumidityController::setTargetHumidity(float humidity) {
+void HumidityController::setTargetHumidity(uint8_t humidity) {
     if(humidity >= 0 && humidity <= 100) {
         targetHumidity = humidity;
         saveSettings();

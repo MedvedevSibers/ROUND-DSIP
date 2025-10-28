@@ -106,7 +106,7 @@ void HeaterController::temperatureTask() {
         float temp = sensors->getTempC(sensorAddress);
         dtostrf(temp,7,2,tempStr);
         xSemaphoreTake(gui_mutex, portMAX_DELAY);
-        lv_label_set_text(ui_labelActTemp,tempStr);
+        lv_label_set_text(ui_LabelTempCurrent,tempStr);
         xSemaphoreGive(gui_mutex);
         
         if (temp != DEVICE_DISCONNECTED_C) {

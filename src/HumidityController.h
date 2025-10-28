@@ -12,10 +12,9 @@ class HumidityController {
 private:
     AHTxx ahtSensor;
     Preferences preferences;
-    uint8_t pumpEnablePin;
     uint8_t pumpPwmPin;
     
-    float targetHumidity;
+    uint8_t targetHumidity;
     uint8_t pumpDuration;
     uint8_t pumpPower;
     bool controlActive;
@@ -31,9 +30,9 @@ private:
     static void controlTask(void* params);
 
 public:
-    HumidityController(uint8_t sdaPin, uint8_t sclPin, uint8_t enablePin, uint8_t pwmPin);
+    HumidityController(uint8_t sdaPin, uint8_t sclPin, uint8_t pwmPin);
     void begin();
-    void setTargetHumidity(float humidity);
+    void setTargetHumidity(uint8_t humidity);
     void setPumpDuration(uint8_t seconds);
     bool getSensorData(float &temperature, float &humidity);
     void enableControl(bool enable);

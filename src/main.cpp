@@ -8,6 +8,7 @@
 #include <Preferences.h>
 #include "HeaterController.h"
 #include "wireless_control.cpp"
+#include "HumidityController.h"
 
 #define RW_MODE false  //Варианты работы с памятью
 #define RO_MODE true
@@ -23,11 +24,16 @@ AsyncWiFiManager wifiManager;
 HeaterController* heater;
 
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
-CST816S mytouch(22,21,27,14); // пины для работы с тачскрином
+CST816S mytouch(22,21,27,14); // пины для работы с тачскрином 22 sda 21 scl
 
-#define PUMP_PIN 17
+#define PUMP_PIN 13
 #define TEMP_PIN 32
 #define RELAY_PIN 33 // WAS 33
+#define SDA_PIN 22
+#define SCL_PIN 21
+
+HumidityController humidityControl(SDA_PIN,SCL_PIN,PUMP_PIN);
+
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp(&oneWire);
@@ -80,35 +86,31 @@ static void event_arc_temp_change (lv_event_t * e) {
   nvs.end();
 }
 
-static void event_pump_freq_change (lv_event_t * e) {
-  char val[10];
-  lv_dropdown_get_selected_str(ui_dropdownPwmFreq, val, sizeof(val));
-  ledcChangeFrequency(0, atoi(val),8);
-  Serial.printf("PUMP FREQ = ", val);
+static void event_moisture_arc_change (lv_event_t * e) {
+  int val = lv_arc_get_value(ui_ArcMoistLevel);
+  humidityControl.setTargetHumidity(val);
 }
 
 static void event_pump_power_change (lv_event_t * e) {
-  int val = lv_arc_get_value(ui_ArcPUMP);
-  ledcWrite(0, val);
-  Serial.printf("PUMP POWER = ", val);
+  int val = lv_slider_get_value(ui_SliderPumpPower);
+  humidityControl.setPumpPower(val);
 }
 
-static void event_pump_onoff (lv_event_t * e) {
-  if (lv_obj_has_state(ui_switchOnOffPump, LV_STATE_CHECKED)) {
-    ledcAttachPin(PUMP_PIN, 0);
-    ledcWrite(0, lv_arc_get_value(ui_ArcPUMP));
-  }
-  else {
-    ledcWrite(0,0);
-    ledcDetachPin(PUMP_PIN);
-  }
+static void event_pump_duration_change (lv_event_t * e) {
+  int val = lv_slider_get_value(ui_SliderMoistureVolume);
+  humidityControl.setPumpDuration(val);
+}
+
+static void event_moist_switch_change (lv_event_t * e) {
+  bool val = lv_obj_has_state(ui_SwitchMoistOnOff,LV_STATE_CHECKED);
+  humidityControl.enableControl(val);
 }
 
 void initEventSetup () {
-  lv_obj_add_event_cb(ui_dropdownPwmFreq, event_pump_freq_change, LV_EVENT_VALUE_CHANGED, NULL);
-  lv_obj_add_event_cb(ui_ArcPUMP, event_pump_power_change, LV_EVENT_VALUE_CHANGED, NULL);
-  lv_obj_add_event_cb(ui_switchOnOffPump, event_pump_onoff, LV_EVENT_VALUE_CHANGED, NULL);
-  lv_obj_add_event_cb(ui_arcTempSettings, event_arc_temp_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_ArcMoistLevel, event_moisture_arc_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_SliderPumpPower, event_pump_power_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_SliderMoistureVolume, event_pump_duration_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_SwitchMoistOnOff, event_moist_switch_change, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
 /* Display flushing */
@@ -180,6 +182,7 @@ void setup ()
     heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
     heater->setPIDTunings(180.0, 72.0, 112.0);
     heater->setTargetTemperature(floor_setpoint);
+    humidityControl.begin();
     initEventSetup();
     lv_arc_set_value(ui_arcTempSettings,floor_setpoint);
     char buf[10];

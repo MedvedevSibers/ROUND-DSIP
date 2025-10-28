@@ -44,7 +44,29 @@ void ui_event_RollerMenu(lv_event_t * e)
     lv_event_code_t event_code = lv_event_get_code(e);
 
     if(event_code == LV_EVENT_VALUE_CHANGED) {
-        _ui_flag_modify(ui_SwitchMoistOnOff, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+        // Получаем текст выбранной опции
+        char selected_option[32];
+        lv_roller_get_selected_str(ui_RollerMenu, selected_option, sizeof(selected_option));
+        
+        // Сначала скрываем все контейнеры
+        lv_obj_add_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);
+        
+        // Затем показываем выбранный контейнер на основе опции
+        if (strcmp(selected_option, "MOISTURE") == 0) {
+            lv_obj_clear_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
+        } 
+        else if (strcmp(selected_option, "FEEDER") == 0) {
+            lv_obj_clear_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);
+        }
+        else if (strcmp(selected_option, "LIGHT") == 0) {
+            lv_obj_clear_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);
+        }
+        else if (strcmp(selected_option, "HEATER") == 0) {
+            lv_obj_clear_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);
+        }
     }
 }
 
