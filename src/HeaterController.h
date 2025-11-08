@@ -4,53 +4,61 @@
 #include <Arduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <PID_v1.h>
+#include <Preferences.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
-#include "ui.h"
-
 
 class HeaterController {
 public:
-    HeaterController(int sensorPin, int heaterPin, const String& controlMode);
+    HeaterController(uint8_t sensorPin, uint8_t heaterPin, const String& controlMode);
     ~HeaterController();
     
-    void setTargetTemperature(float temp);
-    void setPIDTunings(double Kp, double Ki, double Kd);
+    void begin();
+    void saveSettings();
+    
+    // Управление состоянием
+    void setEnabled(bool enabled);
+    void setTargetTemperature(int temperature);  // Изменено на int
+    
+    // Геттеры
+    bool isEnabled() const { return controlActive; }
+    int getTargetTemperature() const { return targetTemperature; }  // Изменено на int
+    float getCurrentTemperature() const { return currentTemperature; }
+    
+    // UI синхронизация
+    void syncWithUI();
 
 private:
-    // Конфигурационные параметры
-    int heaterPin;
+    // Аппаратные компоненты
+    OneWire oneWire;
+    DallasTemperature sensors;
+    DeviceAddress sensorAddress;
+    uint8_t heaterPin;
     String controlMode;
     
     // Состояние системы
-    volatile float targetTemp;
-    volatile float currentTemp;
-    
-    // Компоненты датчика температуры
-    OneWire* oneWire;
-    DallasTemperature* sensors;
-    DeviceAddress sensorAddress;
+    volatile bool controlActive;
+    volatile int targetTemperature;  // Изменено на int
+    volatile float currentTemperature;
     
     // PID компоненты
-    PID* pidController;
+    class PID* pidController;
     double pidInput, pidOutput, pidSetpoint;
-    int pwmChannel;
+    uint8_t pwmChannel;
     
     // RTOS компоненты
-    TaskHandle_t tempTaskHandle;
     TaskHandle_t controlTaskHandle;
-    SemaphoreHandle_t tempMutex;
-    SemaphoreHandle_t pidMutex;
-
-    // Приватные методы
-    void temperatureTask();
-    void controlTask();
+    Preferences preferences;
     
-    // Статические обертки для задач FreeRTOS
-    static void temperatureTaskWrapper(void* params);
-    static void controlTaskWrapper(void* params);
+    // Приватные методы
+    void setupHardware();
+    static void controlTask(void* params);
+    void updateTemperature();
+    void controlHeater();
+    
+    // PID настройки
+    double pidKp, pidKi, pidKd;
 };
 
 #endif

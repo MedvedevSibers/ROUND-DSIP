@@ -22,8 +22,8 @@ void HumidityController::begin() {
     controlActive = preferences.getBool("controlActive", false);
     preferences.end();
     char buffer[20];
-    snprintf(buffer, sizeof(buffer), "%.1f", targetHumidity);
-    xSemaphoreTake(gui_mutex, portMAX_DELAY);
+    snprintf(buffer, sizeof(buffer), "%d", targetHumidity);
+    xSemaphoreTake(gui_mutex, portMAX_DELAY);                 
     if (controlActive) {
         lv_obj_add_state(ui_SwitchMoistOnOff,LV_STATE_CHECKED);
     }
@@ -62,7 +62,7 @@ void HumidityController::setupPWM() {
 
 void HumidityController::saveSettings() {
     preferences.begin("humidity-ctrl", false);
-    preferences.putFloat("targetHumid", targetHumidity);
+    preferences.putInt("targetHumid", targetHumidity);
     preferences.putUChar("pumpDuration", pumpDuration);
     preferences.putUChar("pumpPower", pumpPower);
     preferences.putBool("controlActive", controlActive);
@@ -78,7 +78,8 @@ void HumidityController::controlTask(void* params) {
             bool container_visible = lv_obj_is_visible(ui_MoistureContainer);
             if (container_visible) {
                 char buffer[20];
-                snprintf(buffer, sizeof(buffer), "%.1f", humidity);
+                int humInt = (int)roundf(humidity);
+                snprintf(buffer, sizeof(buffer), "%d", humInt);
                 xSemaphoreTake(gui_mutex, portMAX_DELAY);
                 lv_label_set_text(ui_LableMoistureCurrent, buffer);
                 xSemaphoreGive(gui_mutex);

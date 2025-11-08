@@ -159,7 +159,6 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_width(ui_MoistureContainer, 240);
     lv_obj_set_height(ui_MoistureContainer, 240);
     lv_obj_set_align(ui_MoistureContainer, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);     /// Flags
     lv_obj_remove_flag(ui_MoistureContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_SwitchMoistOnOff = lv_switch_create(ui_MoistureContainer);
@@ -220,7 +219,7 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_x(ui_LableMoistureCurrent, 21);
     lv_obj_set_y(ui_LableMoistureCurrent, -41);
     lv_obj_set_align(ui_LableMoistureCurrent, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LableMoistureCurrent, "50.00");
+    lv_label_set_text(ui_LableMoistureCurrent, "--");
     lv_obj_set_style_text_color(ui_LableMoistureCurrent, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_LableMoistureCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_LableMoistureCurrent, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -271,7 +270,7 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_x(ui_LableMoistureTraget, 21);
     lv_obj_set_y(ui_LableMoistureTraget, -63);
     lv_obj_set_align(ui_LableMoistureTraget, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LableMoistureTraget, "50");
+    lv_label_set_text(ui_LableMoistureTraget, "--");
     lv_obj_set_style_text_align(ui_LableMoistureTraget, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_LableMoistureTraget, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_radius(ui_LableMoistureTraget, 10, LV_PART_MAIN | LV_STATE_DEFAULT);

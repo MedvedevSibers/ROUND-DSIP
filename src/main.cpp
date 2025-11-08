@@ -21,7 +21,7 @@ static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 
 AsyncWiFiManager wifiManager;
 
-HeaterController* heater;
+// HeaterController* heater;
 
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14); // пины для работы с тачскрином 22 sda 21 scl
@@ -33,17 +33,13 @@ CST816S mytouch(22,21,27,14); // пины для работы с тачскри�
 #define SCL_PIN 21
 
 HumidityController humidityControl(SDA_PIN,SCL_PIN,PUMP_PIN);
+HeaterController heatControl(TEMP_PIN,RELAY_PIN,"pid");
 
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp(&oneWire);
 
 Preferences nvs;
-
-float floor_temp = 32; // текущая температура
-int floor_setpoint; // установленная температура пола
-float saved_temp; // переменная для загрузки-выгрузки сохраненной температуры
-
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -62,29 +58,6 @@ void initPwmSetup() {
     digitalWrite(RELAY_PIN, LOW);
 }
 
-void initNvs() {
-  nvs.begin("stored_values", RW_MODE);
-  bool tpInit = nvs.isKey("nvsInit");
-  if (tpInit == false) {
-    nvs.end();
-    nvs.begin("stored_values", RW_MODE);
-    nvs.putInt("saved_temp", 30);
-    nvs.putBool("nvsInit", true);
-    nvs.end();
-    nvs.begin("stored_values", RO_MODE);
-  }
-  floor_setpoint = nvs.getInt("saved_temp");
-  nvs.end();
-}
-
-static void event_arc_temp_change (lv_event_t * e) {
-  int val = lv_arc_get_value(ui_arcTempSettings);
-  floor_setpoint = val;
-  heater->setTargetTemperature(floor_setpoint);
-  nvs.begin("stored_values", RW_MODE);
-  nvs.putInt("saved_temp", floor_setpoint);
-  nvs.end();
-}
 
 static void event_moisture_arc_change (lv_event_t * e) {
   int val = lv_arc_get_value(ui_ArcMoistLevel);
@@ -106,11 +79,23 @@ static void event_moist_switch_change (lv_event_t * e) {
   humidityControl.enableControl(val);
 }
 
+static void event_heater_switch_change (lv_event_t * e) {
+  bool val = lv_obj_has_state(ui_SwitchHeaterOnOff,LV_STATE_CHECKED);
+  heatControl.setEnabled(val);
+}
+
+static void event_heater_setpoint_change (lv_event_t *e) {
+  int val = lv_arc_get_value(ui_ArcHeatLevel);
+  heatControl.setTargetTemperature(val);
+}
+
 void initEventSetup () {
   lv_obj_add_event_cb(ui_ArcMoistLevel, event_moisture_arc_change, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_add_event_cb(ui_SliderPumpPower, event_pump_power_change, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_add_event_cb(ui_SliderMoistureVolume, event_pump_duration_change, LV_EVENT_VALUE_CHANGED, NULL);
   lv_obj_add_event_cb(ui_SwitchMoistOnOff, event_moist_switch_change, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_SwitchHeaterOnOff, event_heater_switch_change,LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_add_event_cb(ui_ArcHeatLevel, event_heater_setpoint_change, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
 /* Display flushing */
@@ -153,7 +138,6 @@ void setup ()
     Serial.begin( 115200 ); /* prepare for possible serial debug */
     wifiManager.begin();
     wifiManager.connect("RT-GPON-2C0C", "uT7FQQ4K");
-    initNvs();
     temp.begin();
     lv_init();
 
@@ -179,15 +163,12 @@ void setup ()
     lv_tick_set_cb( my_tick_get_cb );
 
     ui_init();
-    heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
-    heater->setPIDTunings(180.0, 72.0, 112.0);
-    heater->setTargetTemperature(floor_setpoint);
+    // heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
+    // heater->setPIDTunings(180.0, 72.0, 112.0);
+    // heater->setTargetTemperature(floor_setpoint);
+    heatControl.begin();
     humidityControl.begin();
     initEventSetup();
-    lv_arc_set_value(ui_arcTempSettings,floor_setpoint);
-    char buf[10];
-    dtostrf(floor_setpoint,4,2,buf);
-    lv_label_set_text(ui_tempLabel, buf);
     Serial.println( "Setup done" );
 }
 
