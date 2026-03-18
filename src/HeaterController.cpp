@@ -57,7 +57,7 @@ void HeaterController::setupHardware() {
     if (controlMode == "pid") {
         // Настройка ШИМ для ESP32
         pwmChannel = 0;
-        ledcSetup(pwmChannel, 5000, 8);
+        ledcSetup(pwmChannel, 25000, 8);
         ledcAttachPin(heaterPin, pwmChannel);
         
         // Инициализация PID контроллера

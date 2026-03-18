@@ -26,13 +26,15 @@ AsyncWiFiManager wifiManager;
 TFT_eSPI tft = TFT_eSPI( screenWidth, screenHeight ); /* TFT instance */
 CST816S mytouch(22,21,27,14); // пины для работы с тачскрином 22 sda 21 scl
 
-#define PUMP_PIN 13
+#define PUMP_PIN 12
+#define UV_LIGHT_PIN 25
+#define WATER_LEVEL_PIN 26
 #define TEMP_PIN 32
 #define RELAY_PIN 33 // WAS 33
 #define SDA_PIN 22
 #define SCL_PIN 21
 
-HumidityController humidityControl(SDA_PIN,SCL_PIN,PUMP_PIN);
+HumidityController humidityControl(SDA_PIN,SCL_PIN,PUMP_PIN,WATER_LEVEL_PIN,UV_LIGHT_PIN);
 HeaterController heatControl(TEMP_PIN,RELAY_PIN,"pid");
 
 
@@ -163,9 +165,6 @@ void setup ()
     lv_tick_set_cb( my_tick_get_cb );
 
     ui_init();
-    // heater = new HeaterController(TEMP_PIN, RELAY_PIN, "pid");
-    // heater->setPIDTunings(180.0, 72.0, 112.0);
-    // heater->setTargetTemperature(floor_setpoint);
     heatControl.begin();
     humidityControl.begin();
     initEventSetup();
