@@ -21,7 +21,15 @@ lv_obj_t * ui_wetplaceHumidityLabel = NULL;
 lv_obj_t * ui_warningLight = NULL;
 lv_obj_t * ui_criticalLamp = NULL;
 // event funtions
+void ui_event_Screen1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
 
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_TOP) {
+        lv_indev_wait_release(lv_indev_active());
+        _ui_screen_change(&ui_Screen3, LV_SCR_LOAD_ANIM_MOVE_TOP, 300, 0, &ui_Screen3_screen_init);
+    }
+}
 // build funtions
 
 void ui_Screen1_screen_init(void)

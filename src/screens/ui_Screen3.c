@@ -27,6 +27,15 @@ lv_obj_t * ui_LabelTempCurrent = NULL;
 lv_obj_t * ui_FeederContainer = NULL;
 lv_obj_t * ui_LightContainer = NULL;
 // event funtions
+void ui_event_Screen3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_BOTTOM) {
+        lv_indev_wait_release(lv_indev_active());
+        _ui_screen_change(&ui_Screen1, LV_SCR_LOAD_ANIM_MOVE_BOTTOM, 300, 0, &ui_Screen1_screen_init);
+    }
+}
 void ui_event_RollerMenu(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);

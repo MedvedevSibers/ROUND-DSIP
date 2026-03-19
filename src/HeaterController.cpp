@@ -143,16 +143,26 @@ void HeaterController::updateTemperature() {
     
     if (temp != DEVICE_DISCONNECTED_C) {
         currentTemperature = temp;
-        
-        if (lv_obj_is_visible(ui_HeaterContainer)) {
-            char buffer[20];
-            // Округление до ближайшего целого
-            int tempInt = (int)roundf(currentTemperature);
-            snprintf(buffer, sizeof(buffer), "%d", tempInt);
-            xSemaphoreTake(gui_mutex, portMAX_DELAY);
+
+        char buffer[20];
+        int tempInt = (int)roundf(currentTemperature);
+        snprintf(buffer, sizeof(buffer), "%d", tempInt);
+
+        xSemaphoreTake(gui_mutex, portMAX_DELAY);
+
+        // Экран 1
+        if (lv_obj_is_visible(ui_LabelTempCurrent) &&
+            lv_obj_get_screen(ui_LabelTempCurrent) == lv_scr_act()) {
             lv_label_set_text(ui_LabelTempCurrent, buffer);
-            xSemaphoreGive(gui_mutex);
         }
+
+        // Экран 2
+        if (lv_obj_is_visible(ui_heatpadTempLabel) &&
+            lv_obj_get_screen(ui_heatpadTempLabel) == lv_scr_act()) {
+            lv_label_set_text(ui_heatpadTempLabel, buffer);
+        }
+
+        xSemaphoreGive(gui_mutex);
     }
 }
 

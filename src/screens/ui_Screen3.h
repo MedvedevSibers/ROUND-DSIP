@@ -13,6 +13,7 @@ extern "C" {
 // SCREEN: ui_Screen3
 extern void ui_Screen3_screen_init(void);
 extern void ui_Screen3_screen_destroy(void);
+extern void ui_event_Screen3(lv_event_t * e);
 extern lv_obj_t * ui_Screen3;
 extern void ui_event_RollerMenu(lv_event_t * e);
 extern lv_obj_t * ui_RollerMenu;
