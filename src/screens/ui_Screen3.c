@@ -38,32 +38,29 @@ void ui_event_Screen3(lv_event_t * e)
 }
 void ui_event_RollerMenu(lv_event_t * e)
 {
-    lv_event_code_t event_code = lv_event_get_code(e);
+    // если вызвали вручную — e == NULL
+    if(e && lv_event_get_code(e) != LV_EVENT_VALUE_CHANGED) return;
 
-    if(event_code == LV_EVENT_VALUE_CHANGED) {
-        // Получаем текст выбранной опции
-        char selected_option[32];
-        lv_roller_get_selected_str(ui_RollerMenu, selected_option, sizeof(selected_option));
-        
-        // Сначала скрываем все контейнеры
-        lv_obj_add_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);
-        
-        // Затем показываем выбранный контейнер на основе опции
-        if (strcmp(selected_option, "MOISTURE") == 0) {
-            lv_obj_clear_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
-    }
-        else if (strcmp(selected_option, "FEEDER") == 0) {
+    uint16_t sel = lv_roller_get_selected(ui_RollerMenu);
+
+    lv_obj_add_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);
+
+    switch(sel) {
+        case 0:
             lv_obj_clear_flag(ui_FeederContainer, LV_OBJ_FLAG_HIDDEN);
-        }
-        else if (strcmp(selected_option, "LIGHT") == 0) {
+            break;
+        case 1:
             lv_obj_clear_flag(ui_LightContainer, LV_OBJ_FLAG_HIDDEN);
-        }
-        else if (strcmp(selected_option, "HEATER") == 0) {
+            break;
+        case 2:
             lv_obj_clear_flag(ui_HeaterContainer, LV_OBJ_FLAG_HIDDEN);
-        }
+            break;
+        case 3:
+            lv_obj_clear_flag(ui_MoistureContainer, LV_OBJ_FLAG_HIDDEN);
+            break;
     }
 }
 
@@ -74,6 +71,39 @@ void ui_event_ArcMoistLevel(lv_event_t * e)
 
     if(event_code == LV_EVENT_VALUE_CHANGED) {
         _ui_arc_set_text_value(ui_LableMoistureTraget, target, "", "");
+    }
+}
+
+void ui_event_ButtonRollerUp(lv_event_t * e)
+{
+    if(lv_event_get_code(e) == LV_EVENT_CLICKED) {
+        uint16_t sel = lv_roller_get_selected(ui_RollerMenu);
+
+        if(sel > 0) {
+            lv_roller_set_selected(ui_RollerMenu, sel - 1, LV_ANIM_ON);
+            ui_event_RollerMenu(NULL);
+            
+        } else {
+            // если хочешь зациклить
+            lv_roller_set_selected(ui_RollerMenu, 3, LV_ANIM_ON);
+            ui_event_RollerMenu(NULL);
+            
+        }
+    }
+}
+void ui_event_ButtonRollerDown(lv_event_t * e)
+{
+    if(lv_event_get_code(e) == LV_EVENT_CLICKED) {
+        uint16_t sel = lv_roller_get_selected(ui_RollerMenu);
+
+        if(sel < 3) {
+            lv_roller_set_selected(ui_RollerMenu, sel + 1, LV_ANIM_ON);
+            ui_event_RollerMenu(NULL);
+        } else {
+            // зацикливание
+            lv_roller_set_selected(ui_RollerMenu, 0, LV_ANIM_ON);
+            ui_event_RollerMenu(NULL);
+        }
     }
 }
 
@@ -92,7 +122,7 @@ void ui_event_ArcHeatLevel(lv_event_t * e)
 void ui_Screen3_screen_init(void)
 {
     ui_Screen3 = lv_obj_create(NULL);
-    lv_obj_remove_flag(ui_Screen3, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    //lv_obj_remove_flag(ui_Screen3, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_RollerMenu = lv_roller_create(ui_Screen3);
     lv_roller_set_options(ui_RollerMenu, "FEEDER\nLIGHT\nHEATER\nMOISTURE", LV_ROLLER_MODE_NORMAL);
@@ -204,7 +234,7 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_x(ui_LableMoistureCurrent, 21);
     lv_obj_set_y(ui_LableMoistureCurrent, -41);
     lv_obj_set_align(ui_LableMoistureCurrent, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LableMoistureCurrent, "50.00");
+    lv_label_set_text(ui_LableMoistureCurrent, "--.--");
     lv_obj_set_style_text_color(ui_LableMoistureCurrent, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_LableMoistureCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_LableMoistureCurrent, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -367,7 +397,7 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_x(ui_LabelTempCurrent, 39);
     lv_obj_set_y(ui_LabelTempCurrent, 42);
     lv_obj_set_align(ui_LabelTempCurrent, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LabelTempCurrent, "00");
+    lv_label_set_text(ui_LabelTempCurrent, "--");
     lv_obj_set_style_text_color(ui_LabelTempCurrent, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_LabelTempCurrent, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_LabelTempCurrent, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -391,6 +421,9 @@ void ui_Screen3_screen_init(void)
     lv_obj_add_event_cb(ui_RollerMenu, ui_event_RollerMenu, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_ArcMoistLevel, ui_event_ArcMoistLevel, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_ArcHeatLevel, ui_event_ArcHeatLevel, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_ButtonRollerUp, ui_event_ButtonRollerUp, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_ButtonRollerDown, ui_event_ButtonRollerDown, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_ButtonRollerDown, ui_event_Screen3, LV_EVENT_ALL, NULL);
 
 }
 

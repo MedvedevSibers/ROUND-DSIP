@@ -35,7 +35,7 @@ void ui_event_Screen1(lv_event_t * e)
 void ui_Screen1_screen_init(void)
 {
     ui_Screen1 = lv_obj_create(NULL);
-    lv_obj_remove_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    //lv_obj_remove_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_okLight = lv_button_create(ui_Screen1);
     lv_obj_set_width(ui_okLight, 50);
@@ -65,7 +65,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_timeLabel, 0);
     lv_obj_set_y(ui_timeLabel, -100);
     lv_obj_set_align(ui_timeLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_timeLabel, "00:00");
+    lv_label_set_text(ui_timeLabel, "--:--");
     lv_obj_set_style_text_color(ui_timeLabel, lv_color_hex(0x3E3E3E), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_timeLabel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
@@ -82,7 +82,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_width(ui_heatpadTempLabel, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_heatpadTempLabel, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_heatpadTempLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_heatpadTempLabel, "25");
+    lv_label_set_text(ui_heatpadTempLabel, "--");
     lv_obj_set_style_text_align(ui_heatpadTempLabel, LV_TEXT_ALIGN_AUTO, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_decor(ui_heatpadTempLabel, LV_TEXT_DECOR_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_heatpadTempLabel, &lv_font_montserrat_34, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -121,7 +121,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_wetplaceTempLabel, -35);
     lv_obj_set_y(ui_wetplaceTempLabel, 3);
     lv_obj_set_align(ui_wetplaceTempLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_wetplaceTempLabel, "25");
+    lv_label_set_text(ui_wetplaceTempLabel, "--");
     lv_obj_set_style_text_align(ui_wetplaceTempLabel, LV_TEXT_ALIGN_AUTO, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_decor(ui_wetplaceTempLabel, LV_TEXT_DECOR_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_wetplaceTempLabel, &lv_font_montserrat_34, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -161,7 +161,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_wetplaceHumidityLabel, 50);
     lv_obj_set_y(ui_wetplaceHumidityLabel, 3);
     lv_obj_set_align(ui_wetplaceHumidityLabel, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_wetplaceHumidityLabel, "80");
+    lv_label_set_text(ui_wetplaceHumidityLabel, "--");
     lv_obj_set_style_text_align(ui_wetplaceHumidityLabel, LV_TEXT_ALIGN_AUTO, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_decor(ui_wetplaceHumidityLabel, LV_TEXT_DECOR_NONE, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_wetplaceHumidityLabel, &lv_font_montserrat_34, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -209,6 +209,8 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_style_shadow_spread(ui_criticalLamp, 70, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_offset_x(ui_criticalLamp, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_shadow_offset_y(ui_criticalLamp, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_add_event_cb(ui_Screen1, ui_event_Screen1, LV_EVENT_ALL, NULL);
 
 }
 

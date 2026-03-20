@@ -16,8 +16,9 @@
 
 #ifndef LV_CONF_H
 #define LV_CONF_H
+#define LV_USE_GESTURE 1
 
-//#define LV_SQUARELINE_MOD__SWIPE 1  //if defined or 1, reverts back to LVGL8.3 swipe-gesture behaviour (LVGL-9.1 abandons swipe too early if it finds/leaves a new object in the swipe-path)
+#define LV_SQUARELINE_MOD__SWIPE 1  //if defined or 1, reverts back to LVGL8.3 swipe-gesture behaviour (LVGL-9.1 abandons swipe too early if it finds/leaves a new object in the swipe-path)
 
 /*====================
    COLOR SETTINGS
@@ -499,7 +500,7 @@
 
 #define LV_USE_CALENDAR   1
 #if LV_USE_CALENDAR
-    #define LV_CALENDAR_WEEK_STARTS_MONDAY 0
+    #define LV_CALENDAR_WEEK_STARTS_MONDAY 1
     #if LV_CALENDAR_WEEK_STARTS_MONDAY
         #define LV_CALENDAR_DEFAULT_DAY_NAMES {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"}
     #else

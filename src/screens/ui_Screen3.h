@@ -31,6 +31,8 @@ extern void ui_event_ArcMoistLevel(lv_event_t * e);
 extern lv_obj_t * ui_ArcMoistLevel;
 extern lv_obj_t * ui_HeaterContainer;
 extern void ui_event_ArcHeatLevel(lv_event_t * e);
+extern void ui_event_ButtonRollerUp(lv_event_t * e);
+extern void ui_event_ButtonRollerDown(lv_event_t * e);
 extern lv_obj_t * ui_ArcHeatLevel;
 extern lv_obj_t * ui_SwitchHeaterOnOff;
 extern lv_obj_t * ui_LabelCurrent1;

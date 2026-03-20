@@ -7,8 +7,9 @@
 #include <DallasTemperature.h>
 #include <Preferences.h>
 #include "HeaterController.h"
-#include "wireless_control.cpp"
+#include "wireless_control.h"
 #include "HumidityController.h"
+#include "network_time.h"
 
 #define RW_MODE false  //Варианты работы с памятью
 #define RO_MODE true
@@ -16,10 +17,15 @@
 static const uint16_t screenWidth  = 240;
 static const uint16_t screenHeight = 240;
 
+static lv_point_t last_point = {0, 0};
+static bool last_pressed = false;
+
+
 enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / 10 };
 static lv_color_t buf [SCREENBUFFER_SIZE_PIXELS];
 
 AsyncWiFiManager wifiManager;
+NetworkTime netTime(&wifiManager);
 
 // HeaterController* heater;
 
@@ -120,21 +126,28 @@ void my_disp_flush (lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap
 }
 
 /*Read the touchpad*/
-void my_touchpad_read (lv_indev_t * indev_driver, lv_indev_data_t * data)
+void my_touchpad_read(lv_indev_t * indev_driver, lv_indev_data_t * data)
 {
-    int touchX = 0, touchY = 0;
+    bool touched = mytouch.available();  // твоя функция проверки тача
 
-  if (mytouch.available()) {
-    touchX = mytouch.data.x;
-    touchY = mytouch.data.y;
-    data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
-  } else {
-    data->state = LV_INDEV_STATE_REL;
-   }
+    if (touched) {
+        // Если палец касается дисплея
+        data->state = LV_INDEV_STATE_PR;
+        data->point.x = mytouch.data.x;
+        data->point.y = mytouch.data.y;
+
+        last_point = data->point;   // сохраняем последнюю точку
+        last_pressed = true;
+    } else {
+        // Если палец не касается
+        data->state = LV_INDEV_STATE_REL;
+
+        // LVGL лучше распознает свайпы, если даем последнюю точку
+        data->point = last_point;
+
+        last_pressed = false;
+    }
 }
-
 void setup ()
 {
     Serial.begin( 115200 ); /* prepare for possible serial debug */
@@ -167,6 +180,7 @@ void setup ()
     ui_init();
     heatControl.begin();
     humidityControl.begin();
+    netTime.begin();
     initEventSetup();
     Serial.println( "Setup done" );
 }
